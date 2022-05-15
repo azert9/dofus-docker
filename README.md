@@ -1,6 +1,8 @@
 # dofus-docker
 
 This is an unofficial Docker image for running [Dofus](https://www.dofus.com).
+This should help you run the game on Linux while limiting compatibility issues
+and avoiding wine32 on your system.
 
 ## Prerequistes
 

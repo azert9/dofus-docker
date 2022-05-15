@@ -1,0 +1,51 @@
+#!/bin/bash
+set -eu
+
+DOFUS_HOME=/home/dofus
+
+function fail
+{
+	echo "Entrypoint: $1" >&2
+	exit 1
+}
+
+function check_var
+{
+	var="$1"
+	[ -n "$(eval echo \$"$var")" ] || fail "Must set \$$var."
+}
+
+[ -d "$DOFUS_HOME" ] || "The home directory must be mounted on a volume : $DOFUS_HOME"
+
+# Creating a "dofus" user matching the host UID and groups.
+
+if ! id dofus > /dev/null 2> /dev/null
+then
+	[ "$(id -u)" -eq 0 ] ||	fail "Must run as root."
+	check_var HOST_UID
+	check_var HOST_GID
+	check_var HOST_ADDITIONAL_GROUPS
+
+	saved_ifs="$IFS"
+	IFS=','
+	for gid in $HOST_ADDITIONAL_GROUPS
+	do
+		groupadd --non-unique --gid "$gid" "dofus_$gid"
+	done
+	IFS="$saved_ifs"
+	
+	useradd \
+		--no-create-home --home-dir="$DOFUS_HOME" \
+		--uid "$HOST_UID" \
+		--no-user-group --gid "$HOST_GID" --groups "$HOST_ADDITIONAL_GROUPS" \
+		dofus
+fi
+
+# Starting command.
+
+if [ "$(id -u)" -eq 0 ]
+then
+	exec su --shell=/entrypoint-unprivileged dofus -- "$@"
+else
+	exec /entrypoint-unprivileged "$@"
+fi

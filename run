@@ -1,0 +1,55 @@
+#!/bin/bash
+set -eu
+
+# Refusing to run as root, as this would mess up environment variables and permissions
+
+if [ "$(id -u)" -eq 0 ]
+then
+	echo "Please do not run me as root!" >&2
+	exit 1
+fi
+
+# Go to script directory
+
+cd "$(dirname "$(readlink -f "$(which "$0")")")"
+
+# Create sandboxed home directory
+
+mkdir -p ./home/
+
+# It is not possible to download the launcher automatically due to DDoS protections
+
+if ! [ -f ankama-launcher ]
+then
+	echo "The launcher cannot be downloaded automatically." >&2
+	echo "Please download the AppImage launcher manually from Ankama website," >&2
+	echo "and put it in this directory under the name \"ankama-launcher\"." >&2
+	exit 1
+fi
+
+# Build Docker image
+
+sudo docker build -t dofus .
+
+# The ~/.Xauthority file must exist
+
+if [ -z "$XAUTHORITY" ]
+then
+	export XAUTHORITY=~/.Xauthority
+fi
+
+if ! [ -f "$XAUTHORITY" ]
+then
+	echo "Missing ~/.Xauthority." >&2
+	exit 1
+fi
+
+# Run!
+
+exec sudo docker run \
+	-e "HOST_UID=$(id -u)" -e "HOST_GID=$(id -g)" -e "HOST_ADDITIONAL_GROUPS=$(id -g | tr ' ' ',')" \
+	-v /tmp/.X11-unix:/tmp/.X11-unix -v "$XAUTHORITY":/run/Xauthority:ro -e DISPLAY="$DISPLAY" -e XAUTHORITY=/run/Xauthority \
+	-v $PWD/home:/home/dofus \
+	--ipc=host --net=host \
+	--name dofus --rm \
+	dofus

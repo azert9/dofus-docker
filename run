@@ -49,7 +49,7 @@ fi
 exec sudo docker run \
 	-e "HOST_UID=$(id -u)" -e "HOST_GID=$(id -g)" -e "HOST_ADDITIONAL_GROUPS=$(id -G | tr ' ' ',')" \
 	-v /tmp/.X11-unix:/tmp/.X11-unix -v "$XAUTHORITY":/run/Xauthority:ro -e DISPLAY="$DISPLAY" -e XAUTHORITY=/run/Xauthority \
-	-v $PWD/home:/home/dofus \
+	-v "$PWD/home":/home/dofus \
 	--ipc=host --net=host \
 	--name dofus --rm \
 	dofus

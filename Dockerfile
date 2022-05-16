@@ -13,4 +13,4 @@ COPY ./ankama-launcher /
 COPY ./entrypoint /
 COPY ./entrypoint-unprivileged /
 ENTRYPOINT ["tini", "--", "/entrypoint"]
-CMD ["/ankama-launcher", "--appimage-extract-and-run", "--no-sandbox"]
+CMD ["./ankama-launcher", "--appimage-extract-and-run", "--no-sandbox"]

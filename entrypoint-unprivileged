@@ -3,4 +3,13 @@ set -eu
 
 cd
 
+# Copying the launcher, so that auto-update can write to it
+
+if ! [ -f ~/ankama-launcher ]
+then
+	cp /ankama-launcher ~/
+fi
+
+# exec
+
 exec "$@"
